@@ -15,46 +15,29 @@ class ValueIteration:
     def __init__(self, env: Env):
         """Docstring goes here."""
         self.name = 'Value Iteration'
-        self.V = zeros(env.B, dtype=float)  # V_{t-1}
-        self.Pi = zeros(env.B, dtype=float)
+        self.v = zeros(env.B, dtype=float)  # V_{t-1}
+        self.pi = zeros(env.B, dtype=float)
         self.g = 0
         self.count = 0
 
     def function_name(self, param):
         """Docstring goes here."""
 
-
-    @staticmethod
-    @njit
-    def W_f(V, W, J, S, D, gamma, t, c, r, P, size, sizes, S_states, x_states, dim, P_xy):
-        """W."""
-        V = V.reshape(size);
-        W = W.reshape(size)
-        for s in S_states:
-            for x in x_states:
-                state = np.sum(x * sizes[0:J] + s * sizes[J:J * 2])
-                W[state] = V[state]
-                if np.sum(s) < S:
-                    W[state] = W[state] - P if np.any(x == D) else W[state]
-                    for i in arange(J):
-                        if (x[i] > 0):  # If someone of class i waiting
-                            value = r[i] - c[i] if x[i] > gamma * t[i] else r[i]
-                            for y in arange(x[i] + 1):
-                                next_x = x.copy()
-                                next_x[i] = y
-                                next_s = s.copy()
-                                next_s[i] += 1
-                                next_state = np.sum(next_x * sizes[0:J] + \
-                                                    next_s * sizes[J:J * 2])
-                                value += P_xy[i, x[i], y] * V[next_state]
-                            W[state] = array([value, W[state]]).max()
-        return W.reshape(dim)
+    def calculate_v(env, v):
+        """Calculate V_{t+1}."""
+        y_dep = [0] + list(range(env.B))
+        y_arr = list(range(1, env.B+1)) + [env.B]
+        c_r_v = array([0]*env.B + [env.c_r])
+        v_t = (env.c_h * arange(env.B + 1)
+               + env.lab * np.minimum(v[y_arr] + c_r_v, env.c_r + v)
+               + env.mu * v[y_dep])
+        return v_t / (env.gamma + env.lab + env.mu)
 
     def value_iteration(self, env):
         """Docstring."""
-        env.timer(True, self.name, env.trace)
+        env.timer(True, name=self.name, trace=env.trace)
         while True:  # Update each state.
-            V_t = PI_learner.V_f(env, self.V, self.W)
+            V_t = self.calculate_v(env, self.V, self.W)
             converged, self.g = PI_learner.convergence(env, V_t, self.V, self.count, self.name)
             if (converged):
                 break  # Stopping condition
