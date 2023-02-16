@@ -22,9 +22,14 @@ class Env:
         self.c_r: float = kwargs.get('c_r')  # rejection cost
         self.c_h: float = kwargs.get('c_h')  # holding cost
         self.gamma: float = kwargs.get('gamma')  # discount factor < 1
+        self.eps: float = kwargs.get('eps', 1e-5)
 
+        self.mu: float = kwargs.get('mu')
         self.lab: float = kwargs.get('lab', self.generate_lambda())
-        self.mu: float = kwargs.get('mu', self.generate_lambda())
+
+        self.max_iter = kwargs.get('max_iter', np.Inf)
+        self.trace = kwargs.get('trace', True)
+        self.print_modulo = kwargs.get('print_modulo', 1)
 
     def generate_lambda(self):
         """Generate lambda ~ Gamma(shape: k=alpha, scale: theta=1/beta) """
