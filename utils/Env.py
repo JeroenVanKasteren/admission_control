@@ -3,10 +3,9 @@ Description of script...
 """
 
 import numpy as np
-# from numpy import array, arange, zeros, round
 from numpy.random import default_rng as rng
 from timeit import default_timer
-# from numba import njit
+from time import perf_counter as clock, strptime
 
 
 class Env:
@@ -18,18 +17,24 @@ class Env:
         """Create all variables describing the environment."""
         self.alpha: float = kwargs.get('alpha')
         self.beta: float = kwargs.get('beta')
-        self.B: int = kwargs.get('B')
-        self.c_r: float = kwargs.get('c_r')  # rejection cost
-        self.c_h: float = kwargs.get('c_h')  # holding cost
-        self.gamma: float = kwargs.get('gamma')  # discount factor < 1
+        self.B: int = kwargs.get('B')  # Buffer size
+        self.c_r: float = kwargs.get('c_r')  # Rejection cost
+        self.c_h: float = kwargs.get('c_h')  # Holding cost
+        self.gamma: float = kwargs.get('gamma')  # Discount factor < 1
         self.eps: float = kwargs.get('eps', 1e-5)
 
         self.mu: float = kwargs.get('mu')
         self.lab: float = kwargs.get('lab', self.generate_lambda())
 
         self.max_iter = kwargs.get('max_iter', np.Inf)
-        self.trace = kwargs.get('trace', True)
-        self.print_modulo = kwargs.get('print_modulo', 1)
+        self.start_time = clock()
+        if 'max_time' in kwargs:  # max time in seconds, 60 seconds slack
+            x = strptime(kwargs.get('max_time'), '%H:%M:%S')
+            self.max_time = x.tm_hour * 60 * 60 + x.tm_min * 60 + x.tm_sec - 60
+        else:
+            self.max_time = np.Inf
+        self.print_modulo = kwargs.get('print_modulo', np.inf)  # 1 for always
+        self.convergence_check = kwargs.get('convergence_check', 1)
 
     def generate_lambda(self):
         """Generate lambda ~ Gamma(shape: k=alpha, scale: theta=1/beta) """
