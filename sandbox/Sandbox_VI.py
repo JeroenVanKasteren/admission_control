@@ -3,22 +3,21 @@ Sandbox Value Iteration
 """
 
 import numpy as np
-from numpy import array, arange
 from utils.Env import Env
 from types import SimpleNamespace
 from time import perf_counter as clock
 
 np.set_printoptions(precision=4, linewidth=150, suppress=True)
 
-env = Env(alpha=5, beta=6, mu=5, B=100,
+env = Env(alpha=5, beta=6, mu=5, B=1000,
           c_r=-10, c_h=-1, gamma=-np.log(0.99),
-          print_modulo=10)
+          print_modulo=50)
 
 self = {'name': 'Value Iteration',
         'v': np.zeros(env.B + 1, dtype=float),  # V_{t-1}
         'v_t': np.zeros(env.B + 1, dtype=float),  # V_t
-        'pi': np.append(np.ones(env.B, dtype=float), 0),
-        'g': 0.0,
+        'pi': np.array([1]*env.B + [0], dtype=np.int32),
+        'converged': False,
         'count': 0}
 self = SimpleNamespace(**self)
 
@@ -56,25 +55,25 @@ def convergence(env, v_t, v, i, name, j=-1):
 
 def value_iteration(s, env):
     """Value iteration."""
+    x = np.arange(env.B + 1)
     y_dep = [0] + list(range(env.B))
-    y_arr = list(range(1, env.B + 1)) + [env.B]
-    c_r_v = array([0] * env.B + [env.c_r])
-    c_h_v = env.c_h * arange(env.B + 1)
     stopped = False
     while not (stopped | s.converged):
-        s.v_t = (c_h_v + env.lab * np.minimum(s.v[y_arr], c_r_v + s.v)
-                 + env.mu * s.v[y_dep]) / (env.gamma + env.lab + env.mu)
+        s.v_t[0] = env.lab * s.v[1]
+        s.v_t[1:env.B] = env.lab * np.minimum(s.v[2:env.B+1],
+                                              env.c_r + s.v[1:env.B])
+        s.v_t[env.B] = env.lab * (env.c_r + s.v[env.B])
+        s.v_t += env.c_h * x + env.mu * s.v[y_dep]
+        s.v_t = s.v_t / (env.gamma + env.lab + env.mu)
         if s.count % env.convergence_check == 0:
-            s.converged, stopped = s.convergence(env, s.V_t, s.V, s.count,
-                                                 s.name)
+            s.converged, stopped = convergence(env, s.v_t, s.v, s.count, s.name)
         s.v = s.v_t - s.v_t[0]  # Rescale V_t
         s.count += 1
 
 
-value_iteration(self, env)
-self.v = self.v - self.v[0]
-
-self.pi[1:env.B] = np.argmin([self.v[2:env.B+1],
-                              env.c_r + self.v[1:env.B]], 0)
-print(np.nonzero(self.pi == 0)[0][0])
-print(self.pi)
+if __name__ == "__main__":
+    value_iteration(self, env)
+    self.pi[1:env.B] = np.argmin([self.v[2:env.B+1],
+                                  env.c_r + self.v[1:env.B]], axis=0)
+    print(np.nonzero(self.pi == 0)[0][0])
+    print(self.pi)

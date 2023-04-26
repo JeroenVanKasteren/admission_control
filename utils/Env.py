@@ -41,7 +41,7 @@ class Env:
         return rng().gamma(self.alpha, 1/self.beta)
 
     def cost(self, x, event, tau, a):
-        """Sample arrival (1) or departure (0)."""
+        """Given event (arrival/departure) and time tau, output the cost."""
         return (1/self.gamma * (1 - np.exp(-self.gamma*tau)) * x * self.c_h
                 + np.exp(-self.gamma*tau) * event * (1 - a) * self.c_r)
 
