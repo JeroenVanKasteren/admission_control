@@ -21,7 +21,7 @@ class Env:
         self.c_r: float = kwargs.get('c_r')  # Rejection cost
         self.c_h: float = kwargs.get('c_h')  # Holding cost
         self.gamma: float = kwargs.get('gamma')  # Discount factor < 1
-        self.eps: float = kwargs.get('eps', 1e-5)
+        self.eps: float = kwargs.get('eps', 1e-4)
 
         self.mu: float = kwargs.get('mu')
         self.lab: float = kwargs.get('lab', self.generate_lambda())
@@ -67,16 +67,6 @@ class Env:
         """Docstring"""
         return s.alpha * s.beta ** s.aplha / (s.beta + x) ** (s.alpha + 1)
 
-    def timer(self, name: str = "tmp", start: float = 0, trace: bool = True):
-        """Only if trace=TRUE, start timer if start=true, else print time."""
-        if not trace:
-            pass
-        elif start == 0:
-            print('Starting ' + name + '.')
-            return default_timer()
-        else:
-            time = default_timer() - start
-            print("Time: ", int(time / 60), ":",
-                  int(time - 60 * int(time / 60)))
-            print('Finished ' + name + '.')
-            return time
+    def time_print(self, time):
+        """Convert seconds to readable format."""
+        print(f'Time: {time/60:.0f}:{time - 60 * int(time / 60):.0f} min.\n')

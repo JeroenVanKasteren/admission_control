@@ -6,12 +6,14 @@ import numpy as np
 from utils.Env import Env
 from types import SimpleNamespace
 from time import perf_counter as clock
+import sys
 
-np.set_printoptions(precision=4, linewidth=150, suppress=True)
+np.set_printoptions(precision=4, linewidth=150, suppress=True,
+                    threshold=sys.maxsize)
 
 env = Env(alpha=5, beta=6, mu=5, B=1000,
           c_r=-10, c_h=-1, gamma=-np.log(0.99),
-          print_modulo=50)
+          print_modulo=100)
 
 self = {'name': 'Value Iteration',
         'v': np.zeros(env.B + 1, dtype=float),  # V_{t-1}
@@ -33,23 +35,16 @@ def convergence(env, v_t, v, i, name, j=-1):
     max_time = time > env.max_time
     if (converged | (((i % env.print_modulo == 0) & (j == -1))
                      | (j % env.print_modulo == 0))):
-        print("iter: ", i,
-              "inner_iter: ", j,
-              ", time: ", round(time, 2),
-              ", delta: ", round(delta_max - delta_min, 2),
-              ', D_min', round(delta_min, 2),
-              ', D_max', round(delta_max, 2))
+        print(f'iter: {i}, inner_iter: {j}, '
+              f'delta: {delta_max - delta_min:.3f}, '
+              f'd_min: {delta_min:.3f}, d_max: {delta_max:.3f}')
     if converged:
-        if j == -1:
-            print(name, 'converged in', i, 'iterations and ', time, 'seconds.')
-        else:
-            print(name, 'converged in', j, 'iterations and ', time, 'seconds.')
+        iter = i if j == -1 else j
+        print(f'{name} converged in {iter} iterations.\n')
     elif max_iter:
-        print(name, 'iter:', i, '(', j, ') reached max_iter =', max_iter,
-              'after ', time, 'seconds.')
+        print(f'{name} iter {i}, ({j}) reached max_iter ({max_iter})\n')
     elif max_time:
-        print(name, 'iter:', i, '(', j, ') reached max_time =', max_time,
-              'after ', time, 'seconds.')
+        print(f'{name} iter {i}, ({j}) reached max_time ({max_time})\n')
     return converged, max_iter | max_time
 
 
