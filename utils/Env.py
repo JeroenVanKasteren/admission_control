@@ -15,6 +15,7 @@ class Env:
 
     def __init__(self, **kwargs):  # **kwargs: Keyword arguments
         """Create all variables describing the environment."""
+        self.rng = np.random.default_rng(kwargs.get('seed', 42))
         self.alpha: float = kwargs.get('alpha')
         self.beta: float = kwargs.get('beta')
         self.B: int = kwargs.get('B')  # Buffer size
@@ -35,10 +36,13 @@ class Env:
             self.max_time = np.Inf
         self.print_modulo = kwargs.get('print_modulo', np.inf)  # 1 for always
         self.convergence_check = kwargs.get('convergence_check', 1)
+        print(f'alpha = {self.alpha} beta = {self.beta}, B = {self.B}, \n'
+              f'gamma = {self.gamma}, c_r = {self.c_r}, c_h = {self.c_h}, \n'
+              f'mu = {self.mu}, lab = {self.lab}, \n')
 
     def generate_lambda(self):
         """Generate lambda ~ Gamma(shape: k=alpha, scale: theta=1/beta) """
-        return rng().gamma(self.alpha, 1/self.beta)
+        return self.rng.gamma(self.alpha, 1/self.beta)
 
     def cost(self, x, event, tau, a):
         """Given event (arrival/departure) and time tau, output the cost."""
