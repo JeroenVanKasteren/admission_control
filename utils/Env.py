@@ -3,7 +3,6 @@ Description of script...
 """
 
 import numpy as np
-from numpy.random import default_rng as rng
 from timeit import default_timer
 from time import perf_counter as clock, strptime
 
