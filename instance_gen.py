@@ -9,7 +9,6 @@ import os
 from utils import tools
 import pandas as pd
 
-
 def main(name, solve):
     filepath = 'results/instances_' + name
     # Constants that are the same for all instances

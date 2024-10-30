@@ -3,7 +3,7 @@ Sandbox Policy Iteration
 """
 
 import numpy as np
-from utils.Env import Env
+from utils.env import Env
 from sandbox.Sandbox_VI import convergence, policy_improvement
 from types import SimpleNamespace
 np.set_printoptions(precision=4, linewidth=150, suppress=True)

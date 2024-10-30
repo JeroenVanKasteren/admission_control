@@ -3,7 +3,7 @@ Sandbox Value Iteration
 """
 
 import numpy as np
-from utils.Env import Env
+from utils.env import Env
 from types import SimpleNamespace
 from time import perf_counter as clock
 import sys

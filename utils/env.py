@@ -43,6 +43,12 @@ class Env:
         """Generate lambda ~ Gamma(shape: k=alpha, scale: theta=1/beta) """
         return self.rng.gamma(self.alpha, 1/self.beta)
 
+    def event_sim(self, n):
+        return self.rng.binomial(n=1, p=self.lab / (self.lab + self.mu), size=n)
+
+    def time_sim(self, n):
+        return self.rng.exponential(self.lab + self.mu, size=n)
+
     def cost(self, x, event, tau, a):
         """Given event (arrival/departure) and time tau, output the cost."""
         return (1/self.gamma * (1 - np.exp(-self.gamma*tau)) * x * self.c_h
@@ -59,12 +65,6 @@ class Env:
         cost = self.cost(x, event, tau, a)
         x = max(x + event * (1 - a) - (1 - event), 0)
         return cost, self.x
-
-    def event_sim(self, n):
-        return rng().binomial(n=1, p=self.lab / (self.lab + self.mu), size=n)
-
-    def time_sim(self, n):
-        return rng().exponential(self.lab + self.mu, size=n)
 
     def lomax(s, x):
         """Docstring"""
