@@ -5,9 +5,6 @@ Description of script...
 import numpy as np
 from learners import PolicyIteration as pi_learner
 from utils.env import Env
-from types import SimpleNamespace
-from time import perf_counter as clock
-import sys
 
 class ValueIteration:
     """Value Iteration."""
