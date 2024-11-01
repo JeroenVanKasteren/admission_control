@@ -2,6 +2,7 @@ import numpy as np
 from numpy.random import default_rng as rng
 import matplotlib.pyplot as plt
 from scipy.special import gamma as gamma_fun
+import mpmath as mp
 
 N = 10000
 
@@ -17,3 +18,5 @@ def gamma_dist(a, b):
 
 a, b = 5, 6
 gamma_dist(a, b)
+
+mp.gammainc(-5, a=1, b=mp.mpf("inf"))
