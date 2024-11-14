@@ -20,7 +20,6 @@ class Env:
         self.B: int = kwargs.get('B')  # Buffer size
         self.c_r: float = kwargs.get('c_r')  # Rejection cost
         self.c_h: float = kwargs.get('c_h')  # Holding cost
-        self.gamma: float = kwargs.get('gamma')  # Discount factor < 1
         self.eps: float = kwargs.get('eps', 1e-4)
 
         self.mu: float = kwargs.get('mu')
@@ -38,6 +37,14 @@ class Env:
         print(f'alpha = {self.alpha} beta = {self.beta}, B = {self.B}, \n'
               f'gamma = {self.gamma}, c_r = {self.c_r}, c_h = {self.c_h}, \n'
               f'mu = {self.mu}, lab = {self.lab}, \n')
+
+        # initialize state
+        self.state = self.reset()
+
+    @staticmethod
+    def reset():
+        """Reset the environment to the initial state."""
+        return [0, 0]
 
     def generate_lambda(self):
         """Generate lambda ~ Gamma(shape: k=alpha, scale: theta=1/beta) """
@@ -69,7 +76,3 @@ class Env:
     def lomax(s, x):
         """Docstring"""
         return s.alpha * s.beta ** s.aplha / (s.beta + x) ** (s.alpha + 1)
-
-    def time_print(self, time):
-        """Convert seconds to readable format."""
-        print(f'Time: {time/60:.0f}:{time - 60 * int(time / 60):.0f} min.\n')

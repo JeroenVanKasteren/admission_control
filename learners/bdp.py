@@ -1,13 +1,12 @@
 """
 Description of script...
 """
-from idlelib.sidebar import LineNumbers
 
 import numpy as np
 from utils.env import Env
 import mpmath as mp
 
-class bdp:
+class BDP:
     """Bayesian Dynamic Programming."""
 
     def __init__(self, env: Env, **kwargs):
@@ -65,3 +64,4 @@ class bdp:
                                     a=env.beta * (env.mu + env.gamma),
                                     b=mp.mpf("inf"))))
         return gamma, gamma_h
+
