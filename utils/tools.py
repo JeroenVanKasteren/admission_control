@@ -5,10 +5,16 @@ Static functions for the project.
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
+from utils.env import Env
 
 
 def conf_int(alpha, data):
     return norm.ppf(1 - alpha / 2) * data.std() / np.sqrt(len(data))
+
+
+def decay_epsilon(eps, eps_decay):
+    """Decay the exploration rate."""
+    return eps * eps_decay
 
 
 def def_sizes(dim):
