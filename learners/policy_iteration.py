@@ -46,20 +46,20 @@ class PolicyIteration:
                               + (1 - pi) * (env.c_r + v))
         return v_t / (env.gamma + env.lab + env.mu)
 
-    @staticmethod
-    def get_v_threshold(env: Env, v, pi):
-        """Calculate V_{t+1}.
-        assumes admit when empty and reject when full."""
-        v_t = np.zeros(env.B+1)
-        y_dep = np.maximum(np.arange(-1, pi+1), 0)
-        v_t[:pi+1] = (env.c_h * np.arange(pi+1)
-                      + env.lab * v[1:pi+1]
-                      + env.mu * v[y_dep])
-        y_arr = np.minimum(np.arange(pi, env.B + 1) + 1, env.B)
-        v_t[pi+1:] = (env.c_h * np.arange(pi, env.B + 1)
-                      + env.lab * (env.c_r + v[y_arr])
-                      + env.mu * v[pi:env.B])
-        return v_t / (env.gamma + env.lab + env.mu)
+    # @staticmethod
+    # def get_v_threshold(env: Env, v, pi):
+    #     """Calculate V_{t+1}.
+    #     assumes admit when empty and reject when full."""
+    #     v_t = np.zeros(env.B+1)
+    #     y_dep = np.maximum(np.arange(-1, pi+1), 0)
+    #     v_t[:pi+1] = (env.c_h * np.arange(pi+1)
+    #                   + env.lab * v[1:pi+1]
+    #                   + env.mu * v[y_dep])
+    #     y_arr = np.minimum(np.arange(pi, env.B + 1) + 1, env.B)
+    #     v_t[pi+1:] = (env.c_h * np.arange(pi, env.B + 1)
+    #                   + env.lab * (env.c_r + v[y_arr])
+    #                   + env.mu * v[pi:env.B])
+    #     return v_t / (env.gamma + env.lab + env.mu)
 
     @staticmethod
     def convergence(env: Env, v_t, v, i, name, j=-1):

@@ -21,6 +21,7 @@ class Env:
         self.A: int = 2  # Action size
         self.c_r: float = kwargs.get('c_r')  # Rejection cost
         self.c_h: float = kwargs.get('c_h')  # Holding cost
+        self.gamma: float = kwargs.get('gamma')  # discount factor
         self.eps: float = kwargs.get('eps', 1e-4)
 
         self.mu: float = kwargs.get('mu')
@@ -40,12 +41,12 @@ class Env:
               f'mu = {self.mu}, lab = {self.lab}, \n')
 
         # initialize state
-        self.x, self.a, self.r, self.t = self.reset()
+        self.x, self.a, self.r, self.k, self.t = self.reset()
 
     @staticmethod
     def reset():
         """Reset the environment to the initial state."""
-        return [0], [], [], 0  # x, a, r, t
+        return [0], [], [0], 0, 0  # x, a, r, k (arrivals), t(ime)
 
     def generate_lambda(self):
         """Generate lambda ~ Gamma(shape: k=alpha, scale: theta=1/beta) """
@@ -66,7 +67,7 @@ class Env:
         """Compute the expected return, G_{t:t+n}."""
         return sum([gamma ** (k - 1) * self.r[t+k] for k in range(1, n)])
 
-    def transition(self, pi):
+    def step(self, pi):
         """Sample arrival (1) or departure (0)."""
         x = self.x[self.t]  # current state
         event = self.event_sim(1)
@@ -77,6 +78,8 @@ class Env:
             a = (x < self.B) and (pi[x] == 1)  # admit if True
         self.r.append(self.get_return(x, event, tau, a))
         self.x.append(max(x + event * (1 - a) - (1 - event), 0))
+        self.k += event
+        self.t += tau
         return event
 
     def lomax(s, x):

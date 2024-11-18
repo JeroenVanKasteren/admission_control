@@ -17,7 +17,7 @@ class Policies:
             self.c = kwargs.get('c', 1.0)  # Exploration factor
 
 
-    def act(self, env: Env, q: np.ndarray):
+    def choose(self, env: Env, q: np.ndarray):
         """Choose an action."""
         if self.method == 'eps_greedy':
             return self.eps_greedy(env, q)

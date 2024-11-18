@@ -30,20 +30,13 @@ def train(episodes=1000):
 
         while not done:
             # Choose an action
-            action = agent.choose_action(state)
+            action = agent.choose(env)
 
             # Take a step in the environment
             next_state, reward, done = env.step(action)
 
-            # Update the Q-value
-            agent.update_q_value(state, action, reward, next_state)
-
-            # Move to the next state
-            state = next_state
-            total_reward += reward
-
-        # Decay the exploration rate
-        agent.decay_epsilon()
+            # Learn from experience
+            agent.learn(state, action, reward, next_state)
 
         if (episode + 1) % 100 == 0:
             print(f"Episode {episode + 1}: Total Reward: {total_reward}")
