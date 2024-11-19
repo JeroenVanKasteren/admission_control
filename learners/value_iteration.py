@@ -16,7 +16,6 @@ class ValueIteration:
         self.lab = env.lab if method is 'full_info' else env.alpha/env.beta
         self.eps = eps
 
-
         self.v = self.value_iteration(env)
 
     # @staticmethod

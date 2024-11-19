@@ -1,10 +1,10 @@
 """
 Description of script...
 """
-from importlib.metadata import pass_none
 
 import numpy as np
 from utils.env import Env
+from learners import PolicyIteration
 import mpmath as mp
 
 class BDP:
@@ -13,9 +13,9 @@ class BDP:
     def __init__(self, env: Env, **kwargs):
         """Docstring goes here."""
         self.name = 'Bayesian Dynamic Programming'
-        self.state = {'d': env.alpha/env.beta}  # Initial state, get k from env
-        self.delta = kwargs.get('delta', 25)
-        self.D = kwargs.get('D', self.delta * 100)
+        self.d = env.alpha/env.beta  # Init on average rate
+        self.delta = kwargs.get('delta', 20)
+        self.D = kwargs.get('D', self.delta * 5)
         self.K = kwargs.get('K', 100)
 
         self.value_iteration(env)
@@ -57,6 +57,7 @@ class BDP:
 
     @staticmethod
     def gamma_rate(env: Env, alpha, beta):
+        """Discount factor for rate costs: alpha=k+1, beta=kd/delta."""
         return (-(beta * (env.mu + env.gamma)) ^ alpha
                    * (env.alpha * mp.gammainc(-alpha,
                                               a=beta * (env.mu + env.gamma),
@@ -67,7 +68,24 @@ class BDP:
                                     b=mp.mpf("inf"))))
 
     def gamma_lump(self, env: Env, k, d, d_n):
+        """Discount factor for rate costs."""
         return np.exp(-env.gamma * ((k + 1) * d_n - k * d) / self.delta)
+
+    def get_v(self, env, x, k, d, v):
+        """Calculate V_{t+1}."""
+        gamma_r = self.gamma_rate(env, k + 1, k * d / self.delta)
+        v_state = gamma_r * x * env.c_h
+        v_a = np.zeros(2)
+        for d_n in range(1, self.D + 1):
+            for a in range(env.A):
+                v_a[a] = (self.gamma_lump(env, k, d, d_n)
+                          * self.p_trans(env, k, d, d_n)
+                          * ((1 - a) * env.c_r
+                             + v[min(x + a, env.B),
+                                min(k + 1, self.K),
+                                d_n]))
+        v_state += min(v_a)
+        return v_state, np.argmin(v_a)
 
     def value_iteration(self, env: Env):
         v = np.zeros([env.B + 1, self.K + 1, self.D])  # V_{t-1}
@@ -79,30 +97,21 @@ class BDP:
             for x in range(env.B + 1):
                 for k in range(self.K + 1):
                     for d in range(1, self.D + 1):
-                        gamma_r = self.gamma_rate(env, k, d)
-                        v_t[x, k, d] = gamma_r * x * env.c_h
-                        for d_n in range(1, self.D + 1):
-                            gamma_l = self.gamma_lump(env, k, d, d_n)
-                            p_trans = self.p_trans(env, k, d, d_n)
-                            # v_admit = gamma_l * p_trans * (
-                            #     (1 - a) * env.c_r + v[min(x + a, env.B), k + 1, d_n]
-                            # v_t[x, k, d] += min(v_reject, v_admit)
+                        v_state, _ = self.get_v(x, k, d)
+                        v_t[x, k, d] += v_state
             if n_iter % env.convergence_check == 0:
-                converged, stopped = pi_learner.convergence(
-                    env, v_t, self.v, n_iter, self.name + ' ' + self.method)
-            v = v_t - v_t[0, 0, 0]  # Rescale v_t
+                converged, stopped = PolicyIteration.convergence(
+                    env, v_t, self.v, n_iter, self.name)
+            v = v_t - v_t[0, 0, 1]  # Rescale v_t
             n_iter += 1
 
     def learn(self, env: Env):
-        """Update state using Bayesian Dynamic Programming."""
+        """Bayesian Dynamic Programming learns everything in advance."""
         pass
 
     def choose(self, env: Env):
         """Choose an action."""
-        x = env.x[env.t]
-        v_reject = 0
-        v_admit = 0
-        for d_n in range(1, self.D + 1):
-            self.gamma_discount(env, d_n)
-        return (env.c_r + self.v[x, env.k + 1, d_n]
-                < self.v[min(x + 1, env.B), env.k + 1, d_n])
+        # Calculate discretized d based on k/t
+        d = round(env.k / env.t / self.delta)
+        _, a = self.get_v(env.x[env.t], env.k, d)
+        return a

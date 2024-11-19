@@ -16,7 +16,7 @@ class Sarsa:
                                           eps_decay=kwargs.get('eps_decay', 0.95),
                                           c=kwargs.get('c', 1.0),)
 
-    def learn(self, env: Env, a=None):
+    def learn(self, env: Env):
         """Update Q-value using sarsa."""
         if env.t - self.n + 1 < 0:
             return
