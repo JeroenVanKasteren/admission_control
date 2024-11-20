@@ -56,16 +56,13 @@ def train(env: Env, agent, memory):
     for step in range(steps):
         state = env.reset()
         done = False
-        total_reward = 0
         while not done:
             # Choose an action
             action = agent.choose(env)
-
             # Take a step in the environment
             next_state, reward, done = env.step(action)
-
             # Learn from experience
-            agent.learn(state, action, reward, next_state)
+            agent.learn(state)
         memory['x'].append(env.x)
         memory['a'].append(env.a)
         memory['r'].append(env.r)
@@ -83,3 +80,8 @@ for i, inst in insts.iterrows():
             memory = train(env, agent, memory)
         np.savez(FILEPATH_DATA + instances_id + '_' + str(i)
                  + '_' + agent_name + '.npz', memory)
+
+# if isinstance(pi, int):  # Threshold value
+#     a = (x < self.B) and (x < pi)  # admit if True
+# else:  # policy vector
+#     a = (x < self.B) and (pi[x] == 1)  # admit if True

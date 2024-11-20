@@ -18,7 +18,8 @@ class BDP:
         self.D = kwargs.get('D', self.delta * 5)
         self.K = kwargs.get('K', 100)
 
-        self.value_iteration(env)
+        self.v = np.zeros([env.B + 1, self.K + 1, self.D])  # V_{t-1}
+        self.v = self.value_iteration(env)
 
     def p_trans(self, env: Env, k, d, d_n, arr=True):
         if arr:
@@ -71,24 +72,26 @@ class BDP:
         """Discount factor for rate costs."""
         return np.exp(-env.gamma * ((k + 1) * d_n - k * d) / self.delta)
 
-    def get_v(self, env, x, k, d, v):
+    def get_v(self, env, x, k, d):
         """Calculate V_{t+1}."""
         gamma_r = self.gamma_rate(env, k + 1, k * d / self.delta)
         v_state = gamma_r * x * env.c_h
         v_a = np.zeros(2)
         for d_n in range(1, self.D + 1):
+            gamma_l = self.gamma_lump(env, k, d, d_n)
+            p = self.p_trans(env, k, d, d_n)
             for a in range(env.A):
-                v_a[a] = (self.gamma_lump(env, k, d, d_n)
-                          * self.p_trans(env, k, d, d_n)
+                v_a[a] = (gamma_l * p
                           * ((1 - a) * env.c_r
-                             + v[min(x + a, env.B),
+                             + self.v[min(x + a, env.B),
                                 min(k + 1, self.K),
                                 d_n]))
+            v_state += (gamma_l * p
+                        * self.v[max(x - 1, 0), k, d_n])
         v_state += min(v_a)
         return v_state, np.argmin(v_a)
 
     def value_iteration(self, env: Env):
-        v = np.zeros([env.B + 1, self.K + 1, self.D])  # V_{t-1}
         v_t = np.zeros([env.B + 1, self.K + 1, self.D])  # V_t
         converged = False
         stopped = False
@@ -102,16 +105,16 @@ class BDP:
             if n_iter % env.convergence_check == 0:
                 converged, stopped = PolicyIteration.convergence(
                     env, v_t, self.v, n_iter, self.name)
-            v = v_t - v_t[0, 0, 1]  # Rescale v_t
+            self.v = v_t - v_t[0, 0, 1]  # Rescale v_t
             n_iter += 1
-
-    def learn(self, env: Env):
-        """Bayesian Dynamic Programming learns everything in advance."""
-        pass
 
     def choose(self, env: Env):
         """Choose an action."""
         # Calculate discretized d based on k/t
         d = round(env.k / env.t / self.delta)
-        _, a = self.get_v(env.x[env.t], env.k, d)
+        _, a = self.get_v(env, env.x[env.t], env.k, d)
         return a
+
+    def learn(self, env: Env):
+        """Bayesian Dynamic Programming learns everything in advance."""
+        pass

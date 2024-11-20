@@ -67,17 +67,14 @@ class Env:
         """Compute the expected return, G_{t:t+n}."""
         return sum([gamma ** (k - 1) * self.r[t+k] for k in range(1, n)])
 
-    def step(self, pi):
+    def step(self, a):
         """Sample arrival (1) or departure (0)."""
-        x = self.x[self.t]  # current state
+        x = self.x[self.t]  # current state, x_t
         event = self.event_sim(1)
         tau = self.time_sim(1)
-        if isinstance(pi, int):  # Threshold value
-            a = (x < self.B) and (x < pi)  # admit if True
-        else:  # policy vector
-            a = (x < self.B) and (pi[x] == 1)  # admit if True
-        self.r.append(self.get_return(x, event, tau, a))
-        self.x.append(max(x + event * (1 - a) - (1 - event), 0))
+        self.a.append(a)  # a_t
+        self.r.append(self.get_return(x, event, tau, a))  # r_{t+1}
+        self.x.append(max(x + event * (1 - a) - (1 - event), 0))  # x_{t+1}
         self.k += event
         self.t += tau
         return event
