@@ -74,7 +74,8 @@ class Env:
         tau = self.time_sim(1)
         self.a.append(a)  # a_t
         self.r.append(self.get_return(x, event, tau, a))  # r_{t+1}
-        self.x.append(max(x + event * (1 - a) - (1 - event), 0))  # x_{t+1}
+        self.x.append(max(x
+                          + event * (1 - a) - (1 - event), 0))  # x_{t+1}
         self.k += event
         self.t += tau
         return event
