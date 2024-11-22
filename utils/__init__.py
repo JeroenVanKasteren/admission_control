@@ -1,4 +1,5 @@
 from .env import Env
+from .sgd import SGD
 from .tools import (conf_int,
                     def_sizes,
                     DotDict,

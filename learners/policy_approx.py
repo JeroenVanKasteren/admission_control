@@ -1,9 +1,9 @@
 import numpy as np
-from utils import Env, SGD
-from sklearn.linear_model import SGDRegressor, LinearRegression
-from sklearn.neural_network import MLPRegressor
+from utils import Env
+from sklearn.linear_model import SGDClassifier, LogisticRegression
+from sklearn.neural_network import MLPClassifier
 
-class FunctionApprox:
+class PolicyApprox:
 
     def __init__(self, momentum=0.9, gamma=0.99, n=1,
                  method='LSE', control=False, **kwargs):
@@ -19,14 +19,13 @@ class FunctionApprox:
     @staticmethod
     def get_model(method, momentum=None):
         if method in ['SGD']:
-            return SGDRegressor()
+            return SGDClassifier()
         elif method in ['SGD_adam']:
-            # no hidden layers, output layer is identity = linear
-            return MLPRegressor(hidden_layer_sizes=(),
-                                solver='adam',
-                                momentum=momentum)
+            return MLPClassifier(hidden_layer_sizes=(),
+                                 solver='adam',
+                                 momentum=momentum)
         elif method is 'LSE':
-            return LinearRegression()
+            return LogisticRegression()
 
     @staticmethod
     def get_features(x, a=None):
@@ -52,15 +51,18 @@ class FunctionApprox:
             self.model.fit(features, target, weight)
         else:
             self.model.partial_fit(features, target, weight)
-        # if self.method is 'SDG':
-        #     if self.clip_value is not None:
-        #         gradients = self.model.coef_.copy()
-        #         # Perform manual gradient clipping
-        #         np.clip(gradients, -self.clip_value, self.clip_value,
-        #                 out=gradients)
-        #         # Update the weights with the clipped gradients
-        #         self.model.coef_ = gradients
+        if self.method is 'SDG':
+            if self.clip_value is not None:
+                gradients = self.model.coef_.copy()
+                # Perform manual gradient clipping
+                np.clip(gradients, -self.clip_value, self.clip_value,
+                        out=gradients)
+                # Update the weights with the clipped gradients
+                self.model.coef_ = gradients
 
     def estimate(self, x, a=None):
         features = self.get_features(x, a)
         return self.model.predict(features)
+
+    def threshold(self):
+        return self.model.coef_, self.model.intercept_
