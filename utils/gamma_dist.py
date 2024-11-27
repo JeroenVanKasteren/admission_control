@@ -16,7 +16,24 @@ def gamma_dist(a, b):
     plt.show()
 
 
-a, b = 5, 6
-gamma_dist(a, b)
+# Define parameters
+mean = 1  # Fixed mean of the gamma distribution
+shape_parameters = np.linspace(0.5, 4, 10)  # Shape parameters
+scale = mean  # Scale parameter is fixed to 1 since mean = shape * scale
 
-mp.gammainc(-5, a=1, b=mp.mpf("inf"))
+# Create x values for plotting
+x = np.linspace(0, 5, 500)
+
+# Plot gamma distribution for different shape parameters
+for a in shape_parameters:
+    b = a / mean
+    y = b ** a * x ** (a - 1) * (np.exp(-b * x) / gamma_fun(a))
+    plt.plot(x, y, label=f"Shape={a:.2f}")
+
+# Customize plot
+plt.title("Gamma Distribution with Mean=1 and Varying Shape Parameter", fontsize=14)
+plt.xlabel("x", fontsize=12)
+plt.ylabel("Probability Density Function", fontsize=12)
+plt.legend(title="Shape Parameter", fontsize=10)
+plt.grid(alpha=0.4)
+plt.show()

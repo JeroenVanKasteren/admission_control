@@ -1,5 +1,5 @@
 from .env import Env
-from .sgd import SGD
+from .policies import Policies
 from .tools import (conf_int,
                     def_sizes,
                     DotDict,
@@ -9,4 +9,3 @@ from .tools import (conf_int,
                     strip_split,
                     time_print,
                     update_mean)
-from policies import Policies

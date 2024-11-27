@@ -13,7 +13,7 @@ class ValueIteration:
         """Docstring goes here."""
         self.name = 'Value Iteration'
         self.method = method
-        self.lab = env.lab if method is 'full_info' else env.alpha/env.beta
+        self.lab = env.lab if method == 'full_info' else env.alpha/env.beta
         self.eps = eps
 
         self.v = self.value_iteration(env)
@@ -41,7 +41,7 @@ class ValueIteration:
 
     def learn(self, env: Env):
         """Update V-value using value iteration."""
-        if self.method is 'full_info':
+        if self.method == 'full_info':
             return
         lab_t = env.t / env.k
         update = np.abs(self.lab - lab_t)/self.lab > self.eps

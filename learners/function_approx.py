@@ -1,7 +1,7 @@
 import numpy as np
-from utils import Env, SGD
-from sklearn.linear_model import SGDRegressor, LinearRegression
-from sklearn.neural_network import MLPRegressor
+from utils import Env
+from sklearn.linear_model import LinearRegression
+import torch
 
 class FunctionApprox:
 
@@ -12,55 +12,62 @@ class FunctionApprox:
         self.n = n  # n-step
         self.gamma = gamma  # Discount factor
         self.method = method
+
         self.control = control
-        self.model  = self.get_model(method, momentum)
+        self.input_dim = kwargs.get('input_dim', 1 + control)
+        self.output_dim = kwargs.get('output_dim', 1)
+        self.lr = kwargs.get('lr', 1e-2)  # learning_rate
+
+        self.model, self.criterion, self.optimizer  = self.get_model(method, momentum)
         self.clip_value = kwargs.get('clip_value', None)
 
-    @staticmethod
-    def get_model(method, momentum=None):
-        if method in ['SGD']:
-            return SGDRegressor()
-        elif method in ['SGD_adam']:
-            # no hidden layers, output layer is identity = linear
-            return MLPRegressor(hidden_layer_sizes=(),
-                                solver='adam',
-                                momentum=momentum)
-        elif method is 'LSE':
-            return LinearRegression()
-
-    @staticmethod
-    def get_features(x, a=None):
-        if a is None:
-            return x
+    def get_model(self, method, momentum=None):
+        if method in ['SGD', 'SGD_adam']:
+            model = torch.nn.linear(in_features=self.input_dim,
+                                    out_features=1)
+            criterion = torch.nn.MSELoss()
+            if method == 'SGD':
+                optimizer = torch.optim.SGD(model.parameters(), lr=self.lr)
+            else:
+                optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
+        elif method == 'LSE':
+            model = LinearRegression()
+            criterion, optimizer = None, None
         else:
-            return np.array((x, a, x ^ 2), dtype=float).transpose()
+            raise ValueError('Invalid method')
+        return model, criterion, optimizer
 
-    def data_prep(self, env: Env):
-        t = env.t - self.n
-        g_t = env.n_step_return(self.gamma, self.n, t)
-        features = self.get_features(env.x[1:], env.a[1:])
-        target = (g_t + self.gamma ^ self.n
-                  * self.estimate(env.x[env.t], env.a[env.t]))
-        weight = np.ones(len(target))
-        return features, target, weight
+    def get_features(self, x, a=None):
+        if self.control:
+            if self.input_dim == 2:
+                return [x, a]
+            elif self.input_dim == 3:
+                return [x, a, x ^ 2]
+            else:
+                return [x, a, x ^ 2, x / (x - 1)]
+        else:
+            if self.input_dim == 1:
+                return [x]
+            elif self.input_dim == 2:
+                return [x, x ^ 2]
+            else:
+                return [x, x ^ 2, x / (x - 1)]
 
     def learn(self, env: Env):
-        if env.t - self.n + 1 < 0:
+        t = env.t - self.n
+        if t < 0:
             return
-        features, target, weight = self.data_prep(env)
-        if self.method is 'LSE':
-            self.model.fit(features, target, weight)
+        g_t = env.n_step_return(self.gamma, self.n, t)
+        features = self.get_features(env.x[1:], env.a[1:])
+        if self.method == 'LSE':
+            target = (g_t + self.gamma ^ self.n
+                      * self.model.predict(features[-1]))
+            self.model.fit(features, target)
         else:
-            self.model.partial_fit(features, target, weight)
-        # if self.method is 'SDG':
-        #     if self.clip_value is not None:
-        #         gradients = self.model.coef_.copy()
-        #         # Perform manual gradient clipping
-        #         np.clip(gradients, -self.clip_value, self.clip_value,
-        #                 out=gradients)
-        #         # Update the weights with the clipped gradients
-        #         self.model.coef_ = gradients
-
-    def estimate(self, x, a=None):
-        features = self.get_features(x, a)
-        return self.model.predict(features)
+            target = (g_t + self.gamma ^ self.n
+                      * self.model.predict(features[-1]))
+            y_hat = self.model(torch.FloatTensor(features))
+            loss = self.criterion(y_hat, torch.FloatTensor(target))
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()

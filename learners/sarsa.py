@@ -1,5 +1,5 @@
 import numpy as np
-from utils import Env, Policies
+from utils import Env
 from learners import FunctionApprox
 
 class Sarsa:

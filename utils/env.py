@@ -24,16 +24,18 @@ class Env:
         self.gamma: float = kwargs.get('gamma')  # discount factor
         self.eps: float = kwargs.get('eps', 1e-4)
 
-        self.mu: float = kwargs.get('mu')
         self.lab: float = kwargs.get('lab', self.generate_lambda())
+        if 'rho' in kwargs:
+            self.mu: float = self.lab / kwargs.get('rho')
+        else:
+            self.mu: float = kwargs.get('mu')
 
-        self.max_iter = kwargs.get('max_iter', np.Inf)
         self.start_time = clock()
         if 'max_time' in kwargs:  # max time in seconds, 60 seconds slack
             x = strptime(kwargs.get('max_time'), '%H:%M:%S')
             self.max_time = x.tm_hour * 60 * 60 + x.tm_min * 60 + x.tm_sec - 60
         else:
-            self.max_time = np.Inf
+            self.max_time = np.inf
         self.print_modulo = kwargs.get('print_modulo', np.inf)  # 1 for always
         self.convergence_check = kwargs.get('convergence_check', 1)
         print(f'alpha = {self.alpha} beta = {self.beta}, B = {self.B}, \n'

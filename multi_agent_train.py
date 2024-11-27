@@ -5,26 +5,17 @@ from utils import tools, Env
 import learners
 
 # load in inst
-instances_id = '1'
+instances_id = 'lab_1'
 seed = 42
-alpha = 1
-beta = 1
-B = 1  # Buffer size
-c_r = 100  # Rejection cost
-c_h = 1  # Holding cost
-gamma = 0.9  # Discount factor < 1
-eps = 1e-4
-mu = 1
 
-episodes = 10
-steps = 1000
 # max_time = '00:00:10'  # HH:MM:SS
 # print_modulo = 10  # 1 for always
 # convergence_check = 1e1
-agents = ['full_info', 'certainty_equivalent', 'bdp',
-          'sarsa_n1', 'sarsa_n10',
-          'q_learning_n1', 'q_learning_n10',
-          'actor_critic']
+agents = ['full_info', 'certainty_equivalent', 'bdp']
+# agents = ['full_info', 'certainty_equivalent', 'bdp',
+#           'sarsa_n1', 'sarsa_n10',
+#           'q_learning_n1', 'q_learning_n10',
+#           'reinforce', 'actor_critic']
 
 FILEPATH_INSTANCES = 'results/instances_' + instances_id + '.csv'
 FILEPATH_DATA = 'results/data'
@@ -49,10 +40,12 @@ def agent_pick(env, name, **kwargs):
         return learners.Sarsa(env, n)
     elif agent_name == 'q_learning':
         return learners.QLearning(env, n)
-    elif agent_name == 'actor_critic':
-        return learners.ActorCritic(env)
+    # elif agent_name == 'reinforce':
+    #     return learners.Reinforce(env)
+    # elif agent_name == 'actor_critic':
+    #     return learners.ActorCritic(env)
 
-def train(env: Env, agent, memory):
+def train(env: Env, agent, memory, steps):
     for step in range(steps):
         state = env.reset()
         done = False
@@ -69,17 +62,24 @@ def train(env: Env, agent, memory):
         memory['k'].append(env.k)
     return memory
 
-insts = pd.read_csv(FILEPATH_INSTANCES)
-for i, inst in insts.iterrows():
-    env = Env(seed=seed, alpha=alpha, beta=beta, B=B, c_r=c_r, c_h=c_h,
-              gamma=gamma, eps=eps, mu=mu, max_iter=steps)
+instances = pd.read_csv(FILEPATH_INSTANCES)
+for i, inst in instances.iterrows():
+    env = Env(alpha=inst.alpha,
+              beta=inst.beta,
+              B=inst.B,
+              c_r=inst.c_r,
+              c_h=inst.c_h,
+              gamma=inst.gamma,
+              steps=inst.steps,
+              seed=inst.seed,
+              eps=inst.eps)
     for agent_name in agents:
         memory = {'x': [], 'a': [], 'r': [], 'k': []}
-        for episode in range(episodes):
+        for episode in range(inst.episodes):
             agent = agent_pick(env, agent_name)
-            memory = train(env, agent, memory)
-        np.savez(FILEPATH_DATA + instances_id + '_' + str(i)
-                 + '_' + agent_name + '.npz', memory)
+            memory = train(env, agent, memory, inst.steps)
+        np.savez(FILEPATH_DATA + instances_id + '_' + agent_name
+                 + '_' + str(i) + '.npz', memory)
 
 # if isinstance(pi, int):  # Threshold value
 #     a = (x < self.B) and (x < pi)  # admit if True
