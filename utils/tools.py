@@ -5,6 +5,7 @@ Static functions for the project.
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
+from time import perf_counter as clock, strptime
 
 def conf_int(alpha, data):
     return norm.ppf(1 - alpha / 2) * data.std() / np.sqrt(len(data))
@@ -75,6 +76,15 @@ def strip_split(x):
 def time_print(self, time):
     """Convert seconds to readable format."""
     print(f'Time: {time / 60:.0f}:{time - 60 * int(time / 60):.0f} min.\n')
+
+
+def time_to_sec(time, max_time=None):
+    if max_time is None:  # max time in seconds, 60 seconds slack
+        max_time = np.inf
+    else:
+        x = strptime(max_time, '%H:%M:%S')
+        max_time = x.tm_hour * 60 * 60 + x.tm_min * 60 + x.tm_sec - 60
+    return max_time
 
 
 def update_mean(mean, x, n):

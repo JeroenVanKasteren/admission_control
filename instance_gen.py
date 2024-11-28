@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.model_selection import ParameterGrid
 
 def main(name):
-    filepath = 'results/instances_' + name
+    filepath = 'results/instances_' + name + '.csv'
     # Constants that are the same for all instances
     instance_columns = ['rho',  # load
                         'alpha',  # Shape param of gamma dist

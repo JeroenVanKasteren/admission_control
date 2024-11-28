@@ -4,7 +4,6 @@ Description of script...
 
 import numpy as np
 from timeit import default_timer
-from time import perf_counter as clock, strptime
 
 
 class Env:
@@ -14,10 +13,10 @@ class Env:
 
     def __init__(self, **kwargs):  # **kwargs: Keyword arguments
         """Create all variables describing the environment."""
-        self.rng = np.random.default_rng(kwargs.get('seed', 42))
+        self.rng = np.random.default_rng(int(kwargs.get('seed', 42)))
         self.alpha: float = kwargs.get('alpha')
         self.beta: float = kwargs.get('beta')
-        self.B: int = kwargs.get('B')  # Buffer size
+        self.B: int = int(kwargs.get('B'))  # Buffer size
         self.A: int = 2  # Action size
         self.c_r: float = kwargs.get('c_r')  # Rejection cost
         self.c_h: float = kwargs.get('c_h')  # Holding cost
@@ -29,15 +28,9 @@ class Env:
             self.mu: float = self.lab / kwargs.get('rho')
         else:
             self.mu: float = kwargs.get('mu')
+        self.events = self.event_sim(int(10 * kwargs.get('steps', 1e5)))
+        self.times = self.time_sim(int(10 * kwargs.get('steps', 1e5)))
 
-        self.start_time = clock()
-        if 'max_time' in kwargs:  # max time in seconds, 60 seconds slack
-            x = strptime(kwargs.get('max_time'), '%H:%M:%S')
-            self.max_time = x.tm_hour * 60 * 60 + x.tm_min * 60 + x.tm_sec - 60
-        else:
-            self.max_time = np.inf
-        self.print_modulo = kwargs.get('print_modulo', np.inf)  # 1 for always
-        self.convergence_check = kwargs.get('convergence_check', 1)
         print(f'alpha = {self.alpha} beta = {self.beta}, B = {self.B}, \n'
               f'gamma = {self.gamma}, c_r = {self.c_r}, c_h = {self.c_h}, \n'
               f'mu = {self.mu}, lab = {self.lab}, \n')
@@ -71,16 +64,17 @@ class Env:
 
     def step(self, a):
         """Sample arrival (1) or departure (0)."""
-        x = self.x[self.t]  # current state, x_t
-        event = self.event_sim(1)
-        tau = self.time_sim(1)
-        self.a.append(a)  # a_t
-        self.r.append(self.get_return(x, event, tau, a))  # r_{t+1}
-        self.x.append(max(x
-                          + event * (1 - a) - (1 - event), 0))  # x_{t+1}
-        self.k += event
-        self.t += tau
-        return event
+        while True:
+            x = self.x[self.t]  # current state, x_t
+            event = self.events[self.t]
+            tau = self.times[self.t]
+            self.a.append(a)  # a_t
+            self.r.append(self.get_return(x, event, tau, a))  # r_{t+1}
+            self.x.append(max(x + event * (1 - a) - (1 - event), 0))  # x_{t+1}
+            self.k += event
+            self.t += tau
+            if event == 1:
+                return
 
     def lomax(s, x):
         """Docstring"""
