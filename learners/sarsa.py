@@ -1,6 +1,7 @@
 import numpy as np
 from utils import Env
 from learners import FunctionApprox
+from utils.policies import Policies
 
 class Sarsa:
     """Sarsa agent."""

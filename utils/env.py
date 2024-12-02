@@ -33,15 +33,15 @@ class Env:
 
         print(f'alpha = {self.alpha} beta = {self.beta}, B = {self.B}, \n'
               f'gamma = {self.gamma}, c_r = {self.c_r}, c_h = {self.c_h}, \n'
-              f'mu = {self.mu}, lab = {self.lab}, \n')
+              f'mu = {self.mu}, lab = {self.lab}, rho = {kwargs.get('rho')}.\n')
 
         # initialize state
-        self.x, self.a, self.r, self.k, self.t = self.reset()
+        self.x, self.a, self.r, self.k, self.t, self.time = self.reset()
 
     @staticmethod
     def reset():
         """Reset the environment to the initial state."""
-        return [0], [], [0], 0, 0  # x, a, r, k (arrivals), t(ime)
+        return [0], [], [0], 0, 0, 0.  # x, a, r, k (arrivals), t (step), time
 
     def generate_lambda(self):
         """Generate lambda ~ Gamma(shape: k=alpha, scale: theta=1/beta) """
@@ -73,6 +73,7 @@ class Env:
             self.x.append(max(x + event * (1 - a) - (1 - event), 0))  # x_{t+1}
             self.k += event
             self.t += tau
+            self.time += 1
             if event == 1:
                 return
 
