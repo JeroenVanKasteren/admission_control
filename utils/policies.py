@@ -19,10 +19,14 @@ class Policies:
 
     def choose(self, env: Env, q: np.ndarray):
         """Choose an action."""
-        if self.method == 'eps_greedy':
+        if self.method == 'greedy':
+            return np.argmax(q[env.x, :])
+        elif self.method == 'eps_greedy':
             return self.eps_greedy(env, q)
         elif self.method == 'ucb':
             return self.ucb(env, q)
+        else:
+            raise ValueError('Invalid method')
 
     def eps_greedy(self, env: Env, q: np.ndarray):
         """Choose an action based on the epsilon-greedy policy."""

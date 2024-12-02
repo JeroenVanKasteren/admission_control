@@ -2,19 +2,22 @@ import numpy as np
 from utils.env import Env
 from utils.policies import Policies
 
-class QLearning:
-    """Q-learning agent."""
+class EligibilityPrediction:
+    """(True) on-line TD(lambda), Eligibility Traces agent."""
 
     def __init__(self, env, alpha=0.1, gamma=0.99, n=1,
-                 method='eps_greedy', **kwargs):
-        self.q = np.zeros(env.state_size, env.action_size)
-        self.n = n  # n-step
+                 method='true_online', **kwargs):
+        self.v = np.zeros(env.state_size)
+        if method == 'true_online':
+            self.v_old = 0
         self.alpha = alpha  # Learning rate
         self.gamma = gamma  # Discount factor
-        self.policies = Policies(method=method,
-                                 eps=kwargs.get('eps', 1e-2),
-                                 eps_decay=kwargs.get('eps_decay', 0.95),
-                                 c=kwargs.get('c', 1.0),)
+        pi = kwargs.get('pi')
+        if isinstance(pi, (float, int)):
+            self.pi = np.zeros(pi)
+            self.pi[:pi] = 0
+        else:
+            self.pi = pi
 
     def choose(self, env: Env):
         """Choose an action."""
