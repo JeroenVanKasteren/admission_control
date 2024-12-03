@@ -13,7 +13,7 @@ class Env:
 
     def __init__(self, **kwargs):  # **kwargs: Keyword arguments
         """Create all variables describing the environment."""
-        self.rng = np.random.default_rng(int(kwargs.get('seed', 42)))
+        # Fixed parameters
         self.alpha: float = kwargs.get('alpha')
         self.beta: float = kwargs.get('beta')
         self.B: int = int(kwargs.get('B'))  # Buffer size
@@ -22,36 +22,48 @@ class Env:
         self.c_h: float = kwargs.get('c_h')  # Holding cost
         self.gamma: float = kwargs.get('gamma')  # discount factor
         self.eps: float = kwargs.get('eps', 1e-4)
+        self.rho: float = kwargs.get('rho')
 
-        self.lab: float = kwargs.get('lab', self.generate_lambda())
-        if 'rho' in kwargs:
-            self.mu: float = self.lab / kwargs.get('rho')
-        else:
-            self.mu: float = kwargs.get('mu')
-        self.events = self.event_sim(int(10 * kwargs.get('steps', 1e5)))
-        self.times = self.time_sim(int(10 * kwargs.get('steps', 1e5)))
+        self.steps = kwargs.get('steps', 1e5)
+        self.x = self.a = self.r = self.k = self.t = self.time = None
+        self.lab = self.mu = None
+        self.events = self.times = None
 
         print(f'alpha = {self.alpha} beta = {self.beta}, B = {self.B}, \n'
               f'gamma = {self.gamma}, c_r = {self.c_r}, c_h = {self.c_h}, \n'
-              f'mu = {self.mu}, lab = {self.lab}, rho = {kwargs.get('rho')}.\n')
+              f'rho = {self.rho}.\n')
 
-        # initialize state
-        self.x, self.a, self.r, self.k, self.t, self.time = self.reset()
-
-    @staticmethod
-    def reset():
+    def reset(self, seed=42, **kwargs):
         """Reset the environment to the initial state."""
-        return [0], [], [0], 0, 0, 0.  # x, a, r, k (arrivals), t (step), time
+        self.lab: float = kwargs.get('lab', self.generate_lambda(seed))
+        if 'mu' in kwargs:
+            self.mu: float = kwargs.get('mu', self.mu)
+        else:
+            self.mu: float = self.lab / self.rho
+        print(f'mu = {self.mu}, lab = {self.lab}, rho = {self.rho}.\n')
 
-    def generate_lambda(self):
+        surplus = 10 * self.mu / self.lab
+        self.events = self.event_sim(int(surplus * self.steps), seed=seed)
+        self.times = self.time_sim(int(surplus * self.steps), seed=seed)
+
+        self.x = [0]  # [x_0]
+        self.a = []  # a_t
+        self.r = [0]  # [r_0]
+        self.k = 0  # k
+        self.t = 0  # t (steps)
+        self.time = 0.  # time
+
+    def generate_lambda(self, seed=42):
         """Generate lambda ~ Gamma(shape: k=alpha, scale: theta=1/beta) """
-        return self.rng.gamma(self.alpha, 1/self.beta)
+        rng = np.random.default_rng(int(seed))
+        return rng.gamma(self.alpha, 1/self.beta)
 
-    def event_sim(self, n):
-        return self.rng.binomial(n=1, p=self.lab / (self.lab + self.mu), size=n)
+    def event_sim(self, n, seed=42):
+        return self.rng.binomial(n=1, p=self.lab / (self.lab + self.mu),
+                                 size=n, seed=seed)
 
-    def time_sim(self, n):
-        return self.rng.exponential(self.lab + self.mu, size=n)
+    def time_sim(self, n, seed=42):
+        return self.rng.exponential(self.lab + self.mu, size=n, seed=seed)
 
     def get_return(self, x, event, tau, a):
         """Given event (arrival/departure) and time tau, output the cost."""
@@ -72,8 +84,8 @@ class Env:
             self.r.append(self.get_return(x, event, tau, a))  # r_{t+1}
             self.x.append(max(x + event * (1 - a) - (1 - event), 0))  # x_{t+1}
             self.k += event
-            self.t += tau
-            self.time += 1
+            self.t += 1
+            self.time += tau
             if event == 1:
                 return
 

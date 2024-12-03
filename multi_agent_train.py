@@ -49,15 +49,12 @@ def agent_pick(env, name, **kwargs):
 
 def train(env: Env, agent, memory, steps):
     for step in range(int(steps)):
-        state = env.reset()
-        done = False
-        while not done:
-            # Choose an action
-            action = agent.choose(env)
-            # Take a step in the environment
-            env.step(action)
-            # Learn from experience
-            agent.learn(env)
+        # Choose an action
+        action = agent.choose(env)
+        # Take a step in the environment
+        env.step(action)
+        # Learn from experience
+        agent.learn(env)
         memory['x'].append(env.x)
         memory['a'].append(env.a)
         memory['r'].append(env.r)
@@ -74,11 +71,11 @@ for i, inst in instances.iterrows():
               c_h=inst.c_h,
               gamma=inst.gamma,
               steps=inst.steps,
-              seed=inst.seed + i,
               eps=inst.eps)
     for agent_name in agents:
         memory = {'x': [], 'a': [], 'r': [], 'k': []}
         for episode in range(int(inst.episodes)):
+            env.reset(seed=inst.seed + i * inst.episodes + episode)
             agent = agent_pick(env, agent_name)
             memory = train(env, agent, memory, inst.steps)
         np.savez(FILEPATH_DATA + instances_id + '_' + agent_name
