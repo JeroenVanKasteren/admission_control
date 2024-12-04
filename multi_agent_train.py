@@ -11,7 +11,7 @@ seed = 42
 # max_time = '00:00:10'  # HH:MM:SS
 # print_modulo = 10  # 1 for always
 # convergence_check = 1e1
-agents = ['full_info']  # , 'certainty_equivalent', 'bdp']
+agents = ['certainty_equivalent']
 # agents = ['full_info', 'certainty_equivalent', 'bdp',
 #           'sarsa_n1', 'sarsa_n10',
 #           'q_learning_n1', 'q_learning_n10',
@@ -62,24 +62,26 @@ def train(env: Env, agent, memory, steps):
     return memory
 
 instances = pd.read_csv(FILEPATH_INSTANCES)
-for i, inst in instances.iterrows():
-    env = Env(rho=inst.rho,
-              alpha=inst.alpha,
-              beta=inst.beta,
-              B=inst.B,
-              c_r=inst.c_r,
-              c_h=inst.c_h,
-              gamma=inst.gamma,
-              steps=inst.steps,
-              eps=inst.eps)
-    for agent_name in agents:
-        memory = {'x': [], 'a': [], 'r': [], 'k': []}
-        for episode in range(int(inst.episodes)):
-            env.reset(seed=inst.seed + i * inst.episodes + episode)
-            agent = agent_pick(env, agent_name)
-            memory = train(env, agent, memory, inst.steps)
-        np.savez(FILEPATH_DATA + instances_id + '_' + agent_name
-                 + '_' + str(i) + '.npz', memory)
+# for i, inst in instances.iterrows():
+i = 0
+inst = instances.iloc[i]
+env = Env(rho=inst.rho,
+          alpha=inst.alpha,
+          beta=inst.beta,
+          B=inst.B,
+          c_r=inst.c_r,
+          c_h=inst.c_h,
+          gamma=inst.gamma,
+          steps=inst.steps,
+          eps=inst.eps)
+for agent_name in agents:
+    memory = {'x': [], 'a': [], 'r': [], 'k': []}
+    for episode in range(int(inst.episodes)):
+        env.reset(seed=inst.seed + i * inst.episodes + episode)
+        agent = agent_pick(env, agent_name)
+        memory = train(env, agent, memory, inst.steps)
+    np.savez(FILEPATH_DATA + instances_id + '_' + agent_name
+             + '_' + str(i) + '.npz', memory)
 
 # if isinstance(pi, int):  # Threshold value
 #     a = (x < self.B) and (x < pi)  # admit if True

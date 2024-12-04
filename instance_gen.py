@@ -58,8 +58,8 @@ def main(name):
         exit(0)
     grid['eps'] = 1e-3  # epsilon
 
-    for method in methods:
-        grid[method + '_iters'] = 0
+    # for method in methods:
+    #     grid[method + '_iters'] = 0
     if os.path.isfile(filepath):
         print('Error: file already exists, name: ', filepath)
     else:

@@ -3,7 +3,6 @@ Description of script...
 """
 
 import numpy as np
-from timeit import default_timer
 
 
 class Env:
@@ -59,11 +58,13 @@ class Env:
         return rng.gamma(self.alpha, 1/self.beta)
 
     def event_sim(self, n, seed=42):
-        return self.rng.binomial(n=1, p=self.lab / (self.lab + self.mu),
-                                 size=n, seed=seed)
+        rng = np.random.default_rng(int(seed))
+        return rng.binomial(n=1, p=self.lab / (self.lab + self.mu),
+                            size=n)
 
     def time_sim(self, n, seed=42):
-        return self.rng.exponential(self.lab + self.mu, size=n, seed=seed)
+        rng = np.random.default_rng(int(seed))
+        return rng.exponential(self.lab + self.mu, size=n)
 
     def get_return(self, x, event, tau, a):
         """Given event (arrival/departure) and time tau, output the cost."""
