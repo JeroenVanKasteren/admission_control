@@ -1,4 +1,5 @@
 from .env import Env
+from .plotting import multi_boxplot
 from .policies import Policies
 from .tools import (conf_int,
                     def_sizes,

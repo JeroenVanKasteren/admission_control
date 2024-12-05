@@ -35,9 +35,9 @@ class PolicyIteration:
         Forces pi[0] = 1 (admit) and pi[B+1] = 0 (reject)"""
         individual = max(1, min(env.B - 1, env.lab * env.c_r / env.c_h))
         if threshold:
-            pi = np.arange(env.B + 1) < individual
-        else:
             pi = np.ceil(individual)
+        else:
+            pi = np.arange(env.B + 1) < individual
         return pi
 
     @staticmethod
@@ -74,20 +74,22 @@ class PolicyIteration:
     #                   + env.mu * v[pi:env.B])
     #     return v_t / (env.gamma + env.lab + env.mu)
 
-    def convergence(self, v_t, v, i, j=-1):
+    def convergence(self, v_t, v, i, j=-1, trace=False):
         """Convergence check of valid states only."""
         diff = v_t - v
         delta_max = max(diff)
         delta_min = min(diff)
         converged = delta_max - delta_min < self.eps
         max_reached = (i > self.max_iter) | (j > self.max_iter)
-        if converged | (i % self.print_modulo == 0 | j % self.print_modulo == 0):
+        if (trace and
+                (converged
+                 | (i % self.print_modulo == 0 | j % self.print_modulo == 0))):
             print("iter: ", i,
                   "inner_iter: ", j,
                   ", delta: ", round(delta_max - delta_min, 2),
                   ', d_min', round(delta_min, 2),
                   ', d_max', round(delta_max, 2))
-        elif converged:
+        elif trace and converged:
             if j == -1:
                 print(self.name, 'converged in', i, 'iterations.')
             else:

@@ -47,7 +47,7 @@ def agent_pick(env, name, **kwargs):
     # elif agent_name == 'actor_critic':
     #     return learners.ActorCritic(env)
 
-def train(env: Env, agent, memory, steps):
+def train(env: Env, agent, steps):
     for step in range(int(steps)):
         # Choose an action
         action = agent.choose(env)
@@ -55,11 +55,8 @@ def train(env: Env, agent, memory, steps):
         env.step(action)
         # Learn from experience
         agent.learn(env)
-        memory['x'].append(env.x)
-        memory['a'].append(env.a)
-        memory['r'].append(env.r)
-        memory['k'].append(env.k)
-    return memory
+        # debug TODO
+        agent.print_pi(env)
 
 instances = pd.read_csv(FILEPATH_INSTANCES)
 # for i, inst in instances.iterrows():
@@ -70,7 +67,7 @@ env = Env(rho=inst.rho,
           beta=inst.beta,
           B=inst.B,
           c_r=inst.c_r,
-          c_h=inst.c_h,
+          c_h=inst.c_h*5,
           gamma=inst.gamma,
           steps=inst.steps,
           eps=inst.eps)
@@ -79,7 +76,13 @@ for agent_name in agents:
     for episode in range(int(inst.episodes)):
         env.reset(seed=inst.seed + i * inst.episodes + episode)
         agent = agent_pick(env, agent_name)
-        memory = train(env, agent, memory, inst.steps)
+        train(env, agent, inst.steps)
+        # save simulation
+        memory['x'].append(env.x)
+        memory['a'].append(env.a)
+        memory['r'].append(env.r)
+        memory['k'].append(env.k)
+
     np.savez(FILEPATH_DATA + instances_id + '_' + agent_name
              + '_' + str(i) + '.npz', memory)
 
