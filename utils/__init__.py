@@ -10,3 +10,4 @@ from .tools import (conf_int,
                     strip_split,
                     time_print,
                     update_mean)
+from .train import agent_pick, run_simulation, multi_simulation

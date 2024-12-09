@@ -66,7 +66,7 @@ class ValueIteration:
         x = env.x[env.t]
         return  self.v[min(x + 1, env.B)] < env.c_r + self.v[x]
 
-    def print_pi(self, env: Env):
+    def threshold(self, env: Env, trace=False):
         """Get policy."""
         x = np.arange(env.B)
         pi_new = self.v[x + 1] < env.c_r + self.v[x]
@@ -75,8 +75,10 @@ class ValueIteration:
                 threshold = np.argmax(1 - pi_new)
             else:
                 threshold = env.B
-            if np.all(pi_new[threshold:] == False):
-                print('time ', env.t, 'threshold:', threshold)
-            else:
-                print('time ', env.t, 'policy:', pi_new)
+            if trace:
+                if np.all(pi_new[threshold:] == False):
+                    print('time ', env.t, 'threshold:', threshold)
+                else:
+                    print('time ', env.t, 'policy:', pi_new)
         self.pi_learner.pi = pi_new
+        return pi_new

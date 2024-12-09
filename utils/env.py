@@ -51,19 +51,18 @@ class Env:
         self.k = 0  # k
         self.t = 0  # t (steps)
         self.time = 0.  # time
-
     def generate_lambda(self, seed=42):
+
         """Generate lambda ~ Gamma(shape: k=alpha, scale: theta=1/beta) """
         rng = np.random.default_rng(int(seed))
         return rng.gamma(self.alpha, 1/self.beta)
 
     def event_sim(self, n, seed=42):
-        rng = np.random.default_rng(int(seed))
-        return rng.binomial(n=1, p=self.lab / (self.lab + self.mu),
-                            size=n)
+        rng = np.random.default_rng(int(seed + self.t))
+        return rng.binomial(n=1, p=self.lab / (self.lab + self.mu), size=n)
 
     def time_sim(self, n, seed=42):
-        rng = np.random.default_rng(int(seed))
+        rng = np.random.default_rng(int(seed + self.t))
         return rng.exponential(self.lab + self.mu, size=n)
 
     def get_return(self, x, event, tau, a):
