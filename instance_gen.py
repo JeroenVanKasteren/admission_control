@@ -50,9 +50,20 @@ def main(name):
                       'episodes': [1e1],
                       'seed': [42]}
         grid = pd.DataFrame(ParameterGrid(param_grid))
-        grid.beta = grid.alpha
-    elif name == 'J3':  # Instance 3
-        exit(0)
+        grid.beta = grid.alpha  # ensuring E(lambda) = 1
+    elif name == 'small':  # Instance 3
+        param_grid = {'rho': [0.8, 0.9],  # load
+                      'alpha': [0.5, 2],  # Shape param of gamma dist
+                      'beta': [1],  # Rate param of gamma dist
+                      'B': [100],  # Buffer size
+                      'c_r': [1],  # Rejection cost
+                      'c_h': [1 / 5, 1 / 3],  # Holding cost
+                      'gamma': [0.95],  # Discount factor < 1
+                      'steps': [1e4],
+                      'episodes': [1e1],
+                      'seed': [42]}
+        grid = pd.DataFrame(ParameterGrid(param_grid))
+        grid.beta = grid.alpha  # ensuring E(lambda) = 1
     else:
         print('Error: ID not recognized')
         exit(0)
@@ -70,7 +81,6 @@ def main(name):
                   gamma=inst.gamma,
                   steps=inst.steps,
                   eps=inst.eps)
-        memory = {'x': [], 'a': [], 'r': [], 'k': []}
         for episode in range(int(inst.episodes)):
             env.reset(seed=inst.seed + i * inst.episodes + episode)
             agent = agent_pick(env, 'full_info')
