@@ -1,7 +1,7 @@
-import numpy as np
 import re
 from utils import Env
 import learners
+import pickle
 
 FILEPATH_DATA = 'results/data'
 
@@ -41,7 +41,7 @@ def run_simulation(env: Env, agent, steps):
         # Learn from experience
         agent.learn(env)
         # debug TODO
-        # agent.threshold(env, trace=True)
+        agent.threshold(env, trace=True)
 
 def multi_simulation(inst, inst_id, i, agent_name):
     env = Env(rho=inst.rho,
@@ -63,8 +63,10 @@ def multi_simulation(inst, inst_id, i, agent_name):
         memory['a'].append(env.a)
         memory['r'].append(env.r)
         memory['k'].append(env.k)
-    np.savez(FILEPATH_DATA + inst_id + '_' + agent_name
-             + '_' + str(i) + '.npz', memory)
+    filename = (FILEPATH_DATA + '_' + inst_id + '_' + agent_name
+                + '_' + str(i) + '.pickle')
+    with open(filename, 'wb') as handle:
+        pickle.dump(memory, handle)
 
 # if isinstance(pi, int):  # Threshold value
 #     a = (x < self.B) and (x < pi)  # admit if True

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 
 def multi_boxplot(data, keys, title, x_ticks, y_label, violin=False,
-                  rotation=20, left=0.1, bottom=0.1,
+                  rotation=20, left=0.2, bottom=0.2,
                   **kwargs):
     fig, ax = plt.subplots()
     fig.subplots_adjust(left=left, bottom=bottom)

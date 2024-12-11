@@ -1,5 +1,7 @@
 """
 Description of script...
+Initialization of lab for certainty equivalent only affects the first arrival
+(which should be trivial, to always accept).
 """
 
 import numpy as np
@@ -72,13 +74,14 @@ class ValueIteration:
         pi_new = self.v[x + 1] < env.c_r + self.v[x]
         if not np.all(pi_new == self.pi_learner.pi):
             if np.any(pi_new == False):
-                threshold = np.argmax(1 - pi_new)
+                self.pi_learner.threshold = np.argmax(1 - pi_new)
             else:
-                threshold = env.B
+                self.pi_learner.threshold = env.B
             if trace:
-                if np.all(pi_new[threshold:] == False):
-                    print('time ', env.t, 'threshold:', threshold)
+                if np.all(pi_new[self.pi_learner.threshold:] == False):
+                    print('time ', env.t, 'threshold:',
+                          self.pi_learner.threshold)
                 else:
                     print('time ', env.t, 'policy:', pi_new)
         self.pi_learner.pi = pi_new
-        return pi_new
+        return self.pi_learner.threshold

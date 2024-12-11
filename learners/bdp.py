@@ -100,7 +100,7 @@ class BDP:
             for x in range(env.B + 1):
                 for k in range(self.K + 1):
                     for d in range(1, self.D + 1):
-                        v_state, _ = self.get_v(x, k, d)
+                        v_state, _ = self.get_v(env, x, k, d)
                         v_t[x, k, d] += v_state
             if n_iter % env.convergence_check == 0:
                 converged, stopped = PolicyIteration.convergence(

@@ -17,6 +17,7 @@ class PolicyIteration:
         """Docstring goes here."""
         self.v = None  # V_{t-1}
         self.pi = None
+        self.threshold = None
         self.n_iter = 0
         self.converged = False
 

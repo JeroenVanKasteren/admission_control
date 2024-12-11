@@ -41,16 +41,17 @@ class Env:
             self.mu: float = self.lab / self.rho
         print(f'mu = {self.mu}, lab = {self.lab}, rho = {self.rho}.\n')
 
-        surplus = 10 * self.mu / self.lab
-        self.events = self.event_sim(int(surplus * self.steps), seed=seed)
-        self.times = self.time_sim(int(surplus * self.steps), seed=seed)
-
         self.x = [0]  # [x_0]
         self.a = []  # a_t
         self.r = [0]  # [r_0]
         self.k = 0  # k
         self.t = 0  # t (steps)
         self.time = 0.  # time
+
+        surplus = 10 * self.mu / self.lab
+        self.events = self.event_sim(int(surplus * self.steps), seed=seed)
+        self.times = self.time_sim(int(surplus * self.steps), seed=seed)
+
     def generate_lambda(self, seed=42):
 
         """Generate lambda ~ Gamma(shape: k=alpha, scale: theta=1/beta) """
